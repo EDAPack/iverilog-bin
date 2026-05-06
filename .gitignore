@@ -1,2 +1,5 @@
 build/
 packages/
+release/
+iverilog/
+docs/_build/

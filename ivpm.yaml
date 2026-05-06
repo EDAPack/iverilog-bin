@@ -1,0 +1,20 @@
+package:
+  name: iverilog-bin
+
+  # Prepend the bundled iverilog binaries to PATH when installed via IVPM.
+  env:
+  - name: PATH
+    path-prepend: "${IVPM_PACKAGES}/iverilog-bin/bin"
+
+  dep-sets:
+  - name: docs
+    deps:
+    - name: sphinx
+      pypi: true
+      version: ">=7.0"
+    - name: myst-parser
+      pypi: true
+      version: ">=3.0"
+    - name: alabaster
+      pypi: true
+      version: ">=0.7"

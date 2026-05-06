@@ -1,0 +1,79 @@
+name: CI
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    # Every Sunday at 12PM UTC
+    - cron: "0 12 * * 0"
+
+jobs:
+    version-check:
+        runs-on: 'ubuntu-latest'
+        outputs:
+            rls_version: ${{ steps.check.outputs.rls_version }}
+        steps:
+        - name: fetch-version
+          id: check
+          run: |
+            base_version="13.0"
+            rls_version="${base_version}.${{ github.run_id }}"
+            echo "rls_version=${rls_version}" >> ${GITHUB_OUTPUT}
+            echo "rls_version: ${rls_version}"
+
+    build-linux-x86_64:
+        runs-on: 'ubuntu-latest'
+        needs: version-check
+        strategy:
+          matrix:
+            image: [manylinux2014_x86_64, manylinux_2_28_x86_64, manylinux_2_34_x86_64]
+        steps:
+            - uses: actions/checkout@v4
+            - name: build
+              env:
+                BUILD_NUM: ${{ github.run_id }}
+                image: ${{ matrix.image }}
+                iverilog_version: ${{ needs.version-check.outputs.rls_version }}
+              run: >
+                docker run --rm
+                --volume "$(pwd):/io"
+                --env BUILD_NUM
+                --env image
+                --env iverilog_version
+                --workdir /io
+                quay.io/pypa/${{ matrix.image }}
+                /io/scripts/build.sh
+            - name: upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                name: "iverilog-${{ matrix.image }}"
+                path: "release/iverilog-${{ matrix.image }}-*.tar.gz"
+                if-no-files-found: error
+                retention-days: 7
+
+    publish:
+        runs-on: 'ubuntu-latest'
+        needs:
+        - build-linux-x86_64
+        - version-check
+        permissions:
+            contents: write
+        steps:
+        - name: Download build artifacts
+          uses: actions/download-artifact@v4
+          with:
+            pattern: "iverilog-*"
+            path: release
+            merge-multiple: true
+        - name: Create Release
+          uses: softprops/action-gh-release@v2
+          with:
+            tag_name: "v${{ needs.version-check.outputs.rls_version }}"
+            name: "Release v${{ needs.version-check.outputs.rls_version }}"
+            body: |
+              Build of Icarus Verilog v13.0
+              Version: ${{ needs.version-check.outputs.rls_version }}
+            draft: false
+            prerelease: true
+            files: |
+              release/**/*.tar.gz
+            fail_on_unmatched_files: true
