@@ -27,7 +27,7 @@ jobs:
           matrix:
             image: [manylinux2014_x86_64, manylinux_2_28_x86_64, manylinux_2_34_x86_64]
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v6
             - name: build
               env:
                 BUILD_NUM: ${{ github.run_id }}
@@ -43,7 +43,7 @@ jobs:
                 quay.io/pypa/${{ matrix.image }}
                 /io/scripts/build.sh
             - name: upload artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                 name: "iverilog-${{ matrix.image }}"
                 path: "release/iverilog-${{ matrix.image }}-*.tar.gz"
@@ -59,13 +59,13 @@ jobs:
             contents: write
         steps:
         - name: Download build artifacts
-          uses: actions/download-artifact@v4
+          uses: actions/download-artifact@v8
           with:
             pattern: "iverilog-*"
             path: release
             merge-multiple: true
         - name: Create Release
-          uses: softprops/action-gh-release@v2
+          uses: softprops/action-gh-release@v3
           with:
             tag_name: "v${{ needs.version-check.outputs.rls_version }}"
             name: "Release v${{ needs.version-check.outputs.rls_version }}"
