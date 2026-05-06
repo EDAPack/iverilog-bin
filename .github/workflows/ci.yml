@@ -103,6 +103,7 @@ jobs:
               Version: ${{ needs.version-check.outputs.rls_version }}
             draft: false
             prerelease: true
+            make_latest: true
             files: |
               release/**/*.zip
               release/**/*.tar.gz
