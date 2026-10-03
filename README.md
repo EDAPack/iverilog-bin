@@ -23,7 +23,7 @@ iverilog -V
 
 ## Documentation
 
-Full documentation is published at https://edapack.github.io/iverilog-bin/
+Full documentation is published at https://dvkit.org/edapack/iverilog-bin/
 
 ## Notes
 
