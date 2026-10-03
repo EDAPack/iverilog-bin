@@ -9,11 +9,18 @@ root=$(pwd)
 #********************************************************************
 #* Install required packages
 #********************************************************************
-pacman -S --noconfirm --needed \
-    gperf \
-    ${MINGW_PACKAGE_PREFIX}-cc \
-    ${MINGW_PACKAGE_PREFIX}-autotools \
-    zip
+# Retried: MSYS2 mirrors intermittently stall mid-download ("Operation too
+# slow"), which fails the whole build for reasons unrelated to the code.
+for attempt in 1 2 3; do
+    pacman -S --noconfirm --needed \
+        gperf \
+        ${MINGW_PACKAGE_PREFIX}-cc \
+        ${MINGW_PACKAGE_PREFIX}-autotools \
+        zip && break
+    if test $attempt -eq 3; then exit 1; fi
+    echo "pacman failed (attempt $attempt); retrying in 15s"
+    sleep 15
+done
 
 #********************************************************************
 #* Validate environment variables
